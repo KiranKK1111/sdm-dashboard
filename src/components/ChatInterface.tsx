@@ -8,10 +8,10 @@ import {
   CircularProgress,
   Paper,
   IconButton,
-  Grid
+  Chip
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { Send, Sparkles } from 'lucide-react';
+import { Send, Sparkles, Paperclip, X } from 'lucide-react';
 import { ChartResponse } from './ChartResponse';
 
 export interface Message {
@@ -127,22 +127,20 @@ const WelcomeCard = styled(Paper)(({ theme }) => ({
 }));
 
 const SendButton = styled(IconButton)({
-  borderRadius: 30,
   background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
   color: 'white',
   '&:hover': {
-    borderRadius: 30,
     background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
   },
   '&:disabled': {
     opacity: 0.5,
-    borderRadius: 30,
     background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
   },
 });
 
 export function ChatInterface({ messages, onSendMessage, isLoading }: ChatInterfaceProps) {
   const [input, setInput] = useState('');
+  const [attachedFile, setAttachedFile] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -164,6 +162,15 @@ export function ChatInterface({ messages, onSendMessage, isLoading }: ChatInterf
       e.preventDefault();
       handleSubmit(e);
     }
+  };
+
+  const handleFileAttachment = () => {
+    // Simulate file attachment
+    setAttachedFile('ChatSidebar.tsx');
+  };
+
+  const handleRemoveFile = () => {
+    setAttachedFile(null);
   };
 
   return (
@@ -202,14 +209,7 @@ export function ChatInterface({ messages, onSendMessage, isLoading }: ChatInterf
                 Your intelligent assistant for Service Desk Management analytics and insights.
               </Typography>
 
-              <Box 
-                sx={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, 
-                  gap: 2, 
-                  maxWidth: 800 
-                }}
-              >
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, maxWidth: 800 }}>
                 <WelcomeCard
                   elevation={0}
                   onClick={() => onSendMessage('Give SDM PIE chart and bar graph for last annual maintenance')}
@@ -324,34 +324,126 @@ export function ChatInterface({ messages, onSendMessage, isLoading }: ChatInterf
           <Box 
             component="form" 
             onSubmit={handleSubmit}
-            sx={{ position: 'relative' }}
+            sx={{ 
+              backgroundColor: (theme) => theme.palette.mode === 'dark' ? '#2d3748' : '#ffffff',
+              borderRadius: '8px',
+              border: (theme) => `1px solid ${theme.palette.mode === 'dark' ? 'rgba(148, 163, 184, 0.2)' : 'rgba(226, 232, 240, 0.8)'}`,
+              overflow: 'hidden',
+            }}
           >
-            <TextField
-              fullWidth
-              multiline
-              maxRows={6}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Ask about SDM analytics, reports, or incidents..."
-              variant="outlined"
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  paddingRight: '60px',
-                },
-              }}
-            />
-            <SendButton
-              type="submit"
-              disabled={!input.trim() || isLoading}
-              sx={{
-                position: 'absolute',
-                right: 8,
-                bottom: 8,
-              }}
-            >
-              <Send size={18} />
-            </SendButton>
+            {/* Attachment Bar */}
+            {attachedFile && (
+              <Box sx={{ 
+                p: 1.5, 
+                borderBottom: (theme) => `1px solid ${theme.palette.mode === 'dark' ? 'rgba(148, 163, 184, 0.15)' : 'rgba(226, 232, 240, 0.6)'}`,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1
+              }}>
+                <Paperclip size={14} style={{ color: '#64748b' }} />
+                <Chip 
+                  label={attachedFile}
+                  size="small"
+                  onDelete={handleRemoveFile}
+                  deleteIcon={<X size={14} />}
+                  sx={{
+                    backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(59, 130, 246, 0.1)',
+                    color: '#3b82f6',
+                    fontSize: '12px',
+                    height: '24px',
+                    '& .MuiChip-deleteIcon': {
+                      color: '#64748b',
+                      '&:hover': {
+                        color: '#3b82f6',
+                      }
+                    }
+                  }}
+                />
+              </Box>
+            )}
+
+            {/* Text Input Area */}
+            <Box sx={{ position: 'relative' }}>
+              <TextField
+                fullWidth
+                multiline
+                maxRows={8}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Ask about SDM analytics, reports, or incidents..."
+                variant="standard"
+                InputProps={{
+                  disableUnderline: true,
+                }}
+                sx={{
+                  '& .MuiInputBase-root': {
+                    padding: '16px',
+                    fontSize: '14px',
+                    minHeight: '120px',
+                    alignItems: 'flex-start',
+                  },
+                  '& .MuiInputBase-input': {
+                    padding: 0,
+                    '&::placeholder': {
+                      color: (theme) => theme.palette.mode === 'dark' ? 'rgba(148, 163, 184, 0.5)' : 'rgba(100, 116, 139, 0.5)',
+                      opacity: 1,
+                    }
+                  }
+                }}
+              />
+            </Box>
+
+            {/* Bottom Controls Bar */}
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              px: 1.5,
+              py: 1,
+              borderTop: (theme) => `1px solid ${theme.palette.mode === 'dark' ? 'rgba(148, 163, 184, 0.15)' : 'rgba(226, 232, 240, 0.6)'}`,
+            }}>
+              {/* Left Controls */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <IconButton 
+                  size="small"
+                  onClick={handleFileAttachment}
+                  sx={{ 
+                    color: 'text.secondary',
+                    '&:hover': { 
+                      color: 'text.primary',
+                      backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(148, 163, 184, 0.1)' : 'rgba(226, 232, 240, 0.5)',
+                    }
+                  }}
+                >
+                  <Paperclip size={16} />
+                </IconButton>
+              </Box>
+
+              {/* Right Controls */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <IconButton
+                  type="submit"
+                  disabled={!input.trim() || isLoading}
+                  sx={{
+                    background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
+                    color: 'white',
+                    width: 32,
+                    height: 32,
+                    '&:hover': {
+                      background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+                    },
+                    '&:disabled': {
+                      opacity: 0.4,
+                      background: (theme) => theme.palette.mode === 'dark' ? 'rgba(100, 116, 139, 0.2)' : 'rgba(203, 213, 225, 0.3)',
+                      color: (theme) => theme.palette.mode === 'dark' ? 'rgba(148, 163, 184, 0.5)' : 'rgba(100, 116, 139, 0.5)',
+                    },
+                  }}
+                >
+                  <Send size={16} />
+                </IconButton>
+              </Box>
+            </Box>
           </Box>
           
           <Typography 
